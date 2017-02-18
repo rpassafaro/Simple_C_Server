@@ -1,49 +1,28 @@
-#include <stdio.h>
-#include <errno.h>
+#include <sys/types.h>
 #include <sys/socket.h>
-#include <resolv.h>
-#include <arpa/inet.h>
-#include <errno.h>
+#include <netdb.h>
+#include <stdio.h>
+//#include <string.h>
+#include <unistd.h>
 
-#define MY_PORT 9999
-#define MAXBUF  1024
-
-void serverloop(int sockfd)
+int main()
 {
-    int addrlen;
-    int clientfd;
-    struct sockaddr_in client_addr;
-    char buffer[MAXBUF];
 
-    addrlen = sizeof(client_addr);
+    char str[100];
+    int listen_fd;
+	int comm_fd;
+    struct sockaddr_in servaddr;
 
-    clientfd = accept(sockfd, (struct sockaddr*)&client_addr, &addrlen);
-    printf("%s:%d connected\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
-
-    send(clientfd, buffer, recv(clientfd, buffer,MAXBUF, 0), 0);
-
-    close(clientfd);
-
-}
-
-int main(int argc, char const *argv[])
-{
-    int sockfd;
-    struct sockaddr_in self;
-    char buffer[MAXBUF];
-
-    sockfd = socket(AF_INET, SOCK_STREAM, 0);
-
-    self.sin_family = AF_INET;
-    self.sin_port = htons(MY_PORT);
-    self.sin_addr.s_addr = INADDR_ANY;
-    bind(sockfd, (struct sockaddr*)&self, sizeof(self) != 0);
-    listen(sockfd, 20);
-
+    listen_fd = socket(AF_INET, SOCK_STREAM, 0);
+    servaddr.sin_family = AF_INET;
+    servaddr.sin_addr.s_addr = htons(INADDR_ANY);
+    servaddr.sin_port = htons(22000);
+    bind(listen_fd, (struct sockaddr *) &servaddr, sizeof(servaddr));
+    listen(listen_fd, 10);
     while(1)
     {
-        serverloop(sockfd);
+		comm_fd = accept(listen_fd, (struct sockaddr*) NULL, NULL);
+        read(comm_fd,str,100);
+        write(comm_fd, "pong\npong\n", 11);
     }
-    close(sockfd);
-    return 0;
 }
